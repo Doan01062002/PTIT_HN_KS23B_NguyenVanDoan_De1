@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'war'
+}
+
+group 'com.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    junitVersion = '5.11.0'
+}
+
+sourceCompatibility = '22'
+targetCompatibility = '22'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    // spring dependency
+    implementation("org.springframework:spring-core:6.2.5")
+    implementation("org.springframework:spring-web:6.2.5")
+    implementation("org.springframework:spring-webmvc:6.2.5")
+
+    // JSTL mới cho Jakarta (Tomcat 10+)
+    implementation 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api:3.0.0'
+    implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1'
+
+    // Servlet API dùng compileOnly (vì Tomcat đã có sẵn)
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+
+    implementation 'mysql:mysql-connector-java:8.0.33'
+
+    // JUnit cho test
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    //Validation
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+
+    implementation 'com.cloudinary:cloudinary-http44:1.29.0'
+
+}
+
+test {
+    useJUnitPlatform()
+}
