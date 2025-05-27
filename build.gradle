@@ -49,6 +49,7 @@ dependencies {
 
     implementation 'com.cloudinary:cloudinary-http44:1.29.0'
 
+    implementation 'commons-fileupload:commons-fileupload:1.5'
 }
 
 test {

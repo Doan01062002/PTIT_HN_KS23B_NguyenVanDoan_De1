@@ -1,20 +1,22 @@
-package com.example.ptit_hn_ks23b_nguyenvandoan_de1.model;
+package com.example.ptit_hn_ks23b_nguyenvandoan_de1.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Product {
-    private int id;
+public class CreateProductDTO {
     private String name;
     private String description;
     private double price;
     private String image;
     private Integer categoryId;
-    private String categoryName;
     private boolean status;
-    private LocalDateTime createdAt;
+
 }

@@ -1,56 +1,86 @@
 package com.example.ptit_hn_ks23b_nguyenvandoan_de1.controller;
 
-import com.example.ptit_hn_ks23b_nguyenvandoan_de1.dao.CategoryDAO;
 import com.example.ptit_hn_ks23b_nguyenvandoan_de1.model.Category;
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
-import jakarta.servlet.annotation.*;
+import com.example.ptit_hn_ks23b_nguyenvandoan_de1.services.CategoryService;
+import com.example.ptit_hn_ks23b_nguyenvandoan_de1.validators.CategoryValidator;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/category")
-public class CategoryController extends HttpServlet {
-    private CategoryDAO dao = new CategoryDAO();
+@Controller
+@RequestMapping("/category")
+@RequiredArgsConstructor
+public class CategoryController {
+    private final CategoryService categoryService;
+    private final CategoryValidator categoryValidator;
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        String action = req.getParameter("action");
-        if (action == null) action = "list";
-
-        switch (action) {
-            case "new":
-                req.getRequestDispatcher("/views/form_category.jsp").forward(req, res);
-                break;
-            case "edit":
-                int id = Integer.parseInt(req.getParameter("id"));
-                req.setAttribute("category", dao.findById(id));
-                req.getRequestDispatcher("/views/form_category.jsp").forward(req, res);
-                break;
-            case "delete":
-                dao.delete(Integer.parseInt(req.getParameter("id")));
-                res.sendRedirect("category");
-                break;
-            default:
-                List<Category> categories = dao.getAll();
-                req.setAttribute("list", categories);
-                req.getRequestDispatcher("/views/list_category.jsp").forward(req, res);
-                break;
-        }
+    @GetMapping("/list")
+    public String listCategories(Model model) {
+        List<Category> categories = categoryService.getAllCategories();
+        model.addAttribute("categories", categories);
+        model.addAttribute("message", categories.isEmpty() ? "Danh sách trống!" : null);
+        return "category/list";
     }
 
-    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        int id = req.getParameter("category_id").isEmpty() ? 0 : Integer.parseInt(req.getParameter("category_id"));
-        String categoryName = req.getParameter("category_name");
-        String description = req.getParameter("description");
+    @GetMapping("/add")
+    public String showAddForm(Model model) {
+        model.addAttribute("category", new Category());
+        return "category/add";
+    }
 
-        Category c = new Category();
-        c.setCategory_id(id);
-        c.setCategory_name(categoryName);
-        c.setDescription(description);
+    @PostMapping("/add")
+    public String addCategory(@Valid @ModelAttribute("category") Category category, BindingResult result, Model model) {
+        categoryValidator.validate(category, result);
+        if (result.hasErrors()) {
+            return "category/add";
+        }
+        categoryService.addCategory(category);
+        return "redirect:/category/list";
+    }
 
-        if (id == 0) dao.insert(c);
-        else dao.update(c);
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable("id") int id, Model model) {
+        Category category = categoryService.getCategoryById(id);
+        if (category == null) {
+            model.addAttribute("error", "Danh mục không tồn tại!");
+            model.addAttribute("categories", categoryService.getAllCategories());
+            return "category/list";
+        }
+        model.addAttribute("category", category);
+        return "category/edit";
+    }
 
-        res.sendRedirect("category");
+    @PostMapping("/edit")
+    public String updateCategory(@Valid @ModelAttribute("category") Category category, BindingResult result, Model model) {
+        categoryValidator.validate(category, result);
+        if (result.hasErrors()) {
+            return "category/edit";
+        }
+        categoryService.updateCategory(category);
+        return "redirect:/category/list";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteCategory(@PathVariable("id") int id, Model model) {
+        boolean deleted = categoryService.deleteCategory(id);
+        if (!deleted) {
+            model.addAttribute("error", "Không thể xóa danh mục đang có sản phẩm!");
+            model.addAttribute("categories", categoryService.getAllCategories());
+            return "category/list";
+        }
+        return "redirect:/category/list";
+    }
+
+    @GetMapping("/search")
+    public String searchCategories(@RequestParam("name") String name, Model model) {
+        List<Category> categories = categoryService.searchCategories(name);
+        model.addAttribute("categories", categories);
+        model.addAttribute("message", categories.isEmpty() ? "Không tìm thấy danh mục!" : null);
+        return "category/list";
     }
 }

@@ -1,15 +1,22 @@
 package com.example.ptit_hn_ks23b_nguyenvandoan_de1.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class Category {
-    private int category_id;
-    private String category_name;
+    private int id;
+
+    @NotBlank(message = "Tên danh mục không được để trống")
+    private String name;
+
     private String description;
-    private int status;
+    private boolean status;
+    private LocalDateTime createdAt;
 }

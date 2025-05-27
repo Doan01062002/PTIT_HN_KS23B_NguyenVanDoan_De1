@@ -6,8 +6,8 @@
 </head>
 <body>
 <br/>
-<a href="product">Product</a>
+<a href="product/list">Product</a>
 <br/>
-<a href="category">Category</a>
+<a href="category/list">Category</a>
 </body>
 </html>

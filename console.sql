@@ -1,92 +1,155 @@
-create database hackathon_web_java;
+create
+database hackathon_web_java;
 
-use hackathon_web_java;
+use
+hackathon_web_java;
 
-create table Category(
-    category_id int not null auto_increment primary key,
-    category_name varchar(50) not null unique,
-    description text,
-    status bit default(1)
+CREATE TABLE category
+(
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    description TEXT,
+    status      BOOLEAN   DEFAULT TRUE,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-create table Product(
-    product_id int not null auto_increment primary key,
-    product_name varchar(100) not null,
-    description text,
-    price double not null check ( price > 0 ),
-    image_url varchar(255),
-    category_id int not null,
-    status bit default(1),
-    created_at datetime,
-    foreign key (category_id) references Category(category_id)
+CREATE TABLE product
+(
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100)   NOT NULL,
+    description TEXT,
+    price       DECIMAL(10, 2) NOT NULL,
+    image       VARCHAR(255),
+    category_id INT,
+    status      BOOLEAN   DEFAULT TRUE,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES category (id)
 );
 
-DELIMITER //
-create procedure insert_product(
-    in p_product_name varchar(100),
-    in p_description text,
-    in p_price double,
-    in p_image_url varchar(255),
-    in p_category_id int
-)
-begin
-    insert into Product(product_name, description, price, image_url, category_id, created_at)
-    values (p_product_name, p_description, p_price, p_image_url, p_category_id, now());
-end;
+DELIMITER
+//
 
-create procedure update_product(
-    in p_product_id int,
-    in p_product_name varchar(100),
-    in p_description text,
-    in p_price double,
-    in p_image_url varchar(255),
-    in p_category_id int)
-begin
-    update Product
-    set product_name = p_product_name,
-        description = p_description,
-        price = p_price,
-        image_url = p_image_url,
-        category_id = p_category_id
-    where product_id = p_product_id;
-end;
+CREATE PROCEDURE get_all_categories()
+BEGIN
+SELECT *
+FROM category
+ORDER BY created_at DESC;
+END
+//
 
-create procedure delete_product(
-    in p_product_id int)
-begin
-    delete from Product
-    where product_id = p_product_id;
-end;
+CREATE PROCEDURE get_category_by_id(IN p_id INT)
+BEGIN
+SELECT *
+FROM category
+WHERE id = p_id;
+END
+//
 
-DELIMITER //
+CREATE PROCEDURE add_category(IN p_name VARCHAR (100), IN p_description TEXT, IN p_status BOOLEAN)
+BEGIN
+INSERT INTO category (name, description, status)
+VALUES (p_name, p_description, p_status);
+END
+//
 
+CREATE PROCEDURE update_category(IN p_id INT, IN p_name VARCHAR (100), IN p_description TEXT, IN p_status BOOLEAN)
+BEGIN
+UPDATE category
+SET name        = p_name,
+    description = p_description,
+    status      = p_status
+WHERE id = p_id;
+END
+//
 
--- Category Management Procedures
-DELIMITER //
-create procedure insert_category(
-    in p_category_name varchar(50),
-    in p_description text
-)
-begin
-    insert into Category(category_name, description)
-    values (p_category_name, p_description);
-end;
+CREATE PROCEDURE delete_category(IN p_id INT)
+BEGIN
+DELETE
+FROM category
+WHERE id = p_id;
+END
+//
 
-create procedure update_category(
-    in p_category_id int,
-    in p_category_name varchar(50),
-    in p_description text)
-begin
-    update Category
-    set category_name = p_category_name,
-        description = p_description
-    where category_id = p_category_id;
-end;
+CREATE PROCEDURE search_categories(IN p_name VARCHAR (100))
+BEGIN
+SELECT *
+FROM category
+WHERE name LIKE p_name
+ORDER BY created_at DESC;
+END
+//
 
-create procedure delete_category(
-    in p_category_id int)
-begin
-    delete from Category
-    where category_id = p_category_id;
-end;
-DELIMITER //
+CREATE PROCEDURE check_category_products(IN p_category_id INT)
+BEGIN
+SELECT COUNT(*) AS product_count
+FROM product
+WHERE category_id = p_category_id;
+END
+//
+
+CREATE PROCEDURE get_all_products(IN p_offset INT, IN p_limit INT)
+BEGIN
+SELECT p.*, c.name AS category_name
+FROM product p
+         JOIN category c ON p.category_id = c.id
+ORDER BY p.created_at DESC LIMIT p_offset, p_limit;
+END
+//
+
+CREATE PROCEDURE get_total_products()
+BEGIN
+SELECT COUNT(*) AS total
+FROM product;
+END
+//
+
+CREATE PROCEDURE get_product_by_id(IN p_id INT)
+BEGIN
+SELECT p.*, c.name AS category_name
+FROM product p
+         JOIN category c ON p.category_id = c.id
+WHERE p.id = p_id;
+END
+//
+
+CREATE PROCEDURE add_product(IN p_name VARCHAR (100), IN p_description TEXT, IN p_price DECIMAL (10,2),
+                             IN p_image VARCHAR (255), IN p_category_id INT, IN p_status BOOLEAN)
+BEGIN
+INSERT INTO product (name, description, price, image, category_id, status)
+VALUES (p_name, p_description, p_price, p_image, p_category_id, p_status);
+END
+//
+
+CREATE PROCEDURE update_product(IN p_id INT, IN p_name VARCHAR (100), IN p_description TEXT, IN p_price DECIMAL (10,2),
+                                IN p_image VARCHAR (255), IN p_category_id INT, IN p_status BOOLEAN)
+BEGIN
+UPDATE product
+SET name        = p_name,
+    description = p_description,
+    price       = p_price,
+    image       = COALESCE(p_image, image),
+    category_id = p_category_id,
+    status      = p_status
+WHERE id = p_id;
+END
+//
+
+CREATE PROCEDURE delete_product(IN p_id INT)
+BEGIN
+DELETE
+FROM product
+WHERE id = p_id;
+END
+//
+
+CREATE PROCEDURE search_products(IN p_name VARCHAR (100))
+BEGIN
+SELECT p.*, c.name AS category_name
+FROM product p
+         JOIN category c ON p.category_id = c.id
+WHERE p.name LIKE p_name
+ORDER BY p.created_at DESC;
+END
+//
+
+DELIMITER ;
